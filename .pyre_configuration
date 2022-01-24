@@ -1,0 +1,7 @@
+{
+  "strict": true,
+  "source_directories": [
+    "src",
+    "tests"
+  ]
+}

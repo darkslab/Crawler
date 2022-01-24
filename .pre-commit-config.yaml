@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: fix-byte-order-marker
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+  - repo: https://github.com/omnilib/ufmt
+    rev: v1.3.1
+    hooks:
+      - id: ufmt
+        additional_dependencies:
+          - black == 21.12b0
+          - usort == 1.0.0
+  - repo: https://github.com/fsouza/pre-commit-pyre-check
+    rev: v2-0.9.10
+    hooks:
+      - id: pyre-check
