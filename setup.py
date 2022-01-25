@@ -2,7 +2,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-long_description = (Path(__file__).parent.resolve() / "README.md").read_text(
+long_description: str = (Path(__file__).parent.resolve() / "README.md").read_text(
     encoding="utf-8"
 )
 setup(

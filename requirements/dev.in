@@ -1,5 +1,6 @@
 -r release.in
 pip-tools
 pre-commit
-ufmt
+black
+isort
 pyre-check
