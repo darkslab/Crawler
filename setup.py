@@ -27,7 +27,8 @@ setup(
     packages=find_packages(where="src"),
     python_requires=">=3.8, <4",
     install_requires=[
-        "click>=7,<8",
+        "click==7.1.2",
+        "aiohttp==3.8.1",
     ],
     entry_points={
         "console_scripts": [
