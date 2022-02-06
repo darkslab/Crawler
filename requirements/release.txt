@@ -27,4 +27,6 @@ multidict==6.0.2
     #   aiohttp
     #   yarl
 yarl==1.7.2
-    # via aiohttp
+    # via
+    #   -r requirements/release.in
+    #   aiohttp

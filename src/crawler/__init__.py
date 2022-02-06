@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Crawler is working...")
+from .main import cli
