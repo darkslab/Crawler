@@ -1,8 +1,8 @@
 from asyncio import run
 from logging import basicConfig
 
-from .concurrency import ConcurrentMill
-from .mill_workers import CrawlerMillWorker
+from .concurrency import coro_process_queue
+from .queue_processors import CrawlerQueueProcessor
 
 basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -11,10 +11,10 @@ basicConfig(
 
 
 async def coro_crawler() -> None:
-    worker: CrawlerMillWorker
-    # pyre-fixme [9]: worker is declared to have type `CrawlerMillWorker` but is used as type `ConcurrentMillWorker[str]`
-    async with ConcurrentMill(CrawlerMillWorker()) as worker:
-        worker.print_summary()
+    processor: CrawlerQueueProcessor
+    async with CrawlerQueueProcessor() as processor:
+        await coro_process_queue(processor)
+        processor.print_summary_csv()
 
 
 def cli() -> None:

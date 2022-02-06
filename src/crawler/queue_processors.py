@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from asyncio import Queue, TimeoutError
+from contextlib import AbstractAsyncContextManager
 from csv import writer
 from io import StringIO
-from logging import debug, error, info
+from logging import debug, error
 from re import DOTALL, IGNORECASE, Match, compile
-from typing import Dict, Optional, Pattern, Set, Tuple
+from types import TracebackType
+from typing import Dict, Optional, Pattern, Set, Tuple, Type
 
 from aiohttp import ClientError, ClientResponse, ClientSession, ClientTimeout
 from yarl import URL
 
-from .concurrency import ConcurrentMillWorker
+from .concurrency import AsyncQueueProcessor
 from .types import Queable, URLStatistic
 
 DEFAULT_USER_AGENT: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Mobile/15E148 Safari/604.1"
@@ -19,7 +21,9 @@ LINKS_REGEX: Pattern[str] = compile(
 )
 
 
-class CrawlerMillWorker(ConcurrentMillWorker[Tuple[URL, URL]]):
+class CrawlerQueueProcessor(
+    AbstractAsyncContextManager, AsyncQueueProcessor[Tuple[URL, URL]]
+):
     def __init__(self) -> None:
         self._base_url: URL = URL("https://xkcd.com")
         self._session: ClientSession = ClientSession(
@@ -30,8 +34,8 @@ class CrawlerMillWorker(ConcurrentMillWorker[Tuple[URL, URL]]):
         self._seen_urls: Set[URL] = set()
         self._stats: Dict[URL, URLStatistic] = {}
 
-    def create_data_queue(self) -> "Queue[Tuple[URL, URL]]":
-        queue: Queue[Tuple[URL, URL]] = super().create_data_queue()
+    def create_data_queue(self) -> Queue[Tuple[URL, URL]]:
+        queue: Queue[Tuple[URL, URL]] = Queue()
         self._add_url(self._base_url, queue)
         return queue
 
@@ -67,10 +71,18 @@ class CrawlerMillWorker(ConcurrentMillWorker[Tuple[URL, URL]]):
         except TimeoutError:
             error(f"Request to {data[0]} timed out")
 
-    async def coro_close(self) -> None:
+    async def __aenter__(self) -> CrawlerQueueProcessor:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
         await self._session.close()
 
-    def print_summary(self) -> None:
+    def print_summary_csv(self) -> None:
         buffer: StringIO = StringIO()
         # pyre-fixme [6]: In call `_csv.writer`, for 1st positional only parameter expected `_Writer` but got `StringIO`
         csv_writer = writer(buffer)
